@@ -1,12 +1,34 @@
 {
   "name": "code-graph",
   "version": "0.1.0",
+  "description": "Smart context extraction for AI coding tools. Build code graphs, query with token budgets, get exactly the context AI needs.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
     "code-graph": "./dist/cli/index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JSLEEKR/code-graph.git"
+  },
+  "keywords": [
+    "typescript",
+    "code-analysis",
+    "ast",
+    "developer-tools",
+    "mcp",
+    "ai",
+    "context",
+    "code-graph",
+    "tree-sitter",
+    "cli"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run"
