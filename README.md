@@ -22,20 +22,191 @@ AI coding tools waste tokens by reading entire files when they only need a few f
 ## How It Works
 
 ```
-                         +-----------+
-  Your Codebase -------> |  Plugins  | -------> Parse symbols, imports, calls
-  (.ts, .py files)       +-----------+
-                              |
-                              v
-                        +------------+
-                        | Code Graph | -------> Nodes (functions, classes, methods)
-                        +------------+          Edges (calls, imports)
-                              |
-                              v
-                      +----------------+
-  Query: "farewell"   |    Context     |
-  Budget: 500 tokens  |   Extractor    | -------> Minimal context bundle
-  Mode: debug         +----------------+          (target + related symbols)
+Your Codebase                 code-graph                         AI Tool
+━━━━━━━━━━━━━                ━━━━━━━━━━                        ━━━━━━━
+
+src/
+├── user.ts     ──►  [1] File Scan (git ls-files)
+├── auth.ts           │
+├── db.ts             ▼
+└── types.ts    ──►  [2] Language Plugins (regex parsing)
+                      │   Extract: symbols, imports, calls
+                      ▼
+                 [3] Graph Build
+                      │   Nodes: functions, classes, types
+                      │   Edges: who calls what, who imports what
+                      ▼
+                 [4] Cache (.code-graph/cache.json)
+                      │   Next build: only re-parse changed files
+                      ▼
+                 [5] Query Engine (budget BFS)    ◄── "debug getProfile"
+                      │   Priority queue by mode
+                      │   Stop when budget exhausted
+                      ▼
+                 [6] Context Bundle              ──►  38 lines, 225 tokens
+                      (target + related symbols)       (not 950 lines, 4000 tokens)
+```
+
+### Deep Dive: The 6 Steps
+
+#### Step 1: File Scanning
+
+```bash
+# Inside a git repo: respects .gitignore automatically
+git ls-files --full-name
+
+# Fallback: recursive scan, excluding:
+# node_modules, dist, .git, __pycache__, .code-graph
+```
+
+#### Step 2: Language Plugin Parsing
+
+Each file is parsed by a language-specific plugin that extracts three things:
+
+**Symbols** -- functions, classes, methods, interfaces, types:
+```typescript
+// Input: src/user.ts
+export class UserService {
+  async getProfile(userId: string): Promise<Profile> {
+    const user = await this.findUser(userId);
+    return buildProfile(user);
+  }
+}
+
+// Extracted symbols:
+// { id: "src/user.ts::UserService", kind: "class", lines: 1-7 }
+// { id: "src/user.ts::UserService.getProfile", kind: "method", lines: 2-5,
+//   parentSymbol: "src/user.ts::UserService", params: ["userId"] }
+```
+
+**Imports** -- which file imports what from where:
+```typescript
+// import { User, Profile } from './types'
+// → { fromFile: "src/user.ts", toModule: "./types", symbols: ["User", "Profile"] }
+```
+
+**Calls** -- which function calls which:
+```typescript
+// Inside getProfile:  this.findUser(userId)  and  buildProfile(user)
+// → { caller: "UserService.getProfile", callee: "findUser" }
+// → { caller: "UserService.getProfile", callee: "buildProfile" }
+```
+
+The parser uses brace counting (TypeScript) or indentation detection (Python) to find where each block starts and ends:
+
+```
+function greet(name) {    ← brace count: 1
+  if (name) {             ← brace count: 2
+    return `Hi ${name}`;
+  }                       ← brace count: 1
+}                         ← brace count: 0 → block ends here
+```
+
+#### Step 3: Graph Construction
+
+All parsed results are merged into one graph. The critical step is **resolving call targets**:
+
+```
+"getProfile calls findUser" -- but which findUser?
+
+Resolution order:
+  1. Same file?     → src/user.ts has findUser? → Yes → resolved!
+  2. Imported file?  → src/user.ts imports from './db' which has findUser? → resolved!
+  3. Neither?        → External library, skip (not our code)
+```
+
+The result is a graph like:
+
+```
+  getProfile ──calls──► findUser        (cross-file, resolved via import)
+  getProfile ──calls──► buildProfile    (same file)
+  farewell   ──calls──► greet           (same file)
+  greetUser  ──calls──► greet           (cross-file, resolved via import)
+```
+
+#### Step 4: Caching
+
+The graph is serialized to `.code-graph/cache.json` with file modification times. On the next build, only files with changed mtimes are re-parsed. Unchanged files reuse their cached parse results.
+
+#### Step 5: Budget-Based BFS (The Core Algorithm)
+
+This is what makes code-graph unique. When you ask for context:
+
+```
+extract("getProfile", { budget: 2000, mode: "debug" })
+```
+
+The algorithm runs a priority-based BFS:
+
+```
+Step 1: Include target
+  ┌────────────────────────────────────────┐
+  │ getProfile: 80 chars → 20 tokens       │
+  │ Budget remaining: 2000 - 20 = 1980     │
+  └────────────────────────────────────────┘
+
+Step 2: Add neighbors to priority queue (debug mode)
+  Queue (sorted by priority):
+    findUser      (callee → 1st priority in debug mode)
+    buildProfile  (callee → 1st priority)
+    Profile       (type   → 2nd priority)
+    AuthController(caller → 3rd priority)
+
+Step 3: Process queue
+  findUser:       160 chars → 40 tokens  │ 1980-40=1940  ✓ Include!
+  buildProfile:   200 chars → 50 tokens  │ 1940-50=1890  ✓ Include!
+  Profile:         60 chars → 15 tokens  │ 1890-15=1875  ✓ Include!
+  AuthController: 400 chars → 100 tokens │ 1875-100=1775 ✓ Include!
+  ...continue until budget exhausted or queue empty...
+
+Step 4: Result
+  ContextBundle {
+    target: getProfile (20 tokens)
+    related: [findUser, buildProfile, Profile, AuthController]
+    tokenCount: 225 / 2000
+    summary: "getProfile (4 lines) + 2 callees + 1 type + 1 caller"
+  }
+```
+
+**Why modes matter:**
+
+```
+debug mode:                          refactor mode:
+  "Error in getProfile --             "Changing getProfile --
+   what does it call?"                 who will break?"
+
+  Priority: callees FIRST             Priority: callers FIRST
+  → findUser, buildProfile            → AuthController, APIHandler
+  → then types                        → then types
+  → then callers (if budget left)     → then callees (if budget left)
+```
+
+#### Step 6: Output
+
+The context bundle can be output as:
+- **JSON** -- for programmatic use and MCP server responses
+- **Formatted text** -- for CLI and direct AI prompting:
+
+```
+=== Context for: getProfile ===
+Budget: 225/2000 tokens
+
+--- Target ---
+// src/user.ts:2-5 | complexity=3, lines=4, params=1
+async getProfile(userId: string): Promise<Profile> {
+    const user = await this.findUser(userId);
+    return buildProfile(user);
+}
+
+--- Related (3 symbols) ---
+// src/db.ts:10-20
+function findUser(id: string): User { ... }
+
+// src/types.ts:5-8
+interface Profile { id: string; name: string; }
+
+// src/utils.ts:15-25
+function buildProfile(user: User): Profile { ... }
 ```
 
 ## Features
@@ -77,15 +248,30 @@ AI coding tools waste tokens by reading entire files when they only need a few f
 
 ## How It Saves Tokens
 
-Traditional approach: send entire files to AI, wasting tokens on irrelevant code.
+Traditional AI coding tools read files one by one, hoping to find relevant code:
 
-| Approach | Tokens Sent | Relevant Code |
-|----------|-------------|---------------|
-| **Whole file** | ~2,000 | 1 function out of 20 |
-| **code-graph (budget: 500)** | ~487 | Target + 2 related symbols |
-| **Savings** | **75% fewer tokens** | **100% relevant** |
+```
+Traditional AI tool:                        code-graph:
 
-With `code-graph`, a 500-token budget extracts only the target function and its direct dependencies -- exactly what the AI needs to understand the context.
+"Debug getProfile error"                    "Debug getProfile error"
+  → Read user.ts     (200 lines)              → get_context("getProfile", debug)
+  → Read db.ts       (300 lines)              → 38 lines, exactly what's needed
+  → Read types.ts    (150 lines)              → Done.
+  → Read auth.ts     (200 lines)
+  → "Maybe this?" utils.ts (100 lines)
+
+  Total: ~950 lines, ~4000 tokens             Total: 38 lines, ~225 tokens
+  Relevant: ~10%                              Relevant: 100%
+  Savings: -                                  Savings: 94%
+```
+
+| Scenario | Without code-graph | With code-graph | Savings |
+|----------|-------------------|-----------------|---------|
+| Debug a function | ~4,000 tokens (read 5 files) | ~225 tokens (subgraph) | **94%** |
+| Refactor a method | ~3,000 tokens (read 4 files) | ~400 tokens (callers+types) | **87%** |
+| PR review (50-line diff) | ~5,000 tokens (diff + context files) | ~600 tokens (diff subgraph) | **88%** |
+
+The key insight: **static analysis (local, free) determines what to send, AI only processes what matters.**
 
 ## Quick Start
 
