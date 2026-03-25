@@ -5,3 +5,4 @@ export { TypeScriptPlugin } from './plugins/typescript.js';
 export { PythonPlugin } from './plugins/python.js';
 export { scanFiles } from './graph/file-scanner.js';
 export { CodeGraph } from './graph/code-graph.js';
+export { computeComplexity, estimateTokens, computeSymbolMetrics } from './graph/metrics.js';
