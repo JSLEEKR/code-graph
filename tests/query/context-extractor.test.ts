@@ -156,8 +156,28 @@ describe('ContextExtractor', () => {
     });
   });
 
+  // small budget test
+  describe('small budget extraction', () => {
+    it('only includes target with very small budget (100 tokens)', () => {
+      const result = extractor.extract('greet', { budget: 100, mode: 'debug' });
+      expect(result.target.name).toBe('greet');
+      expect(result.tokenCount).toBeLessThanOrEqual(100);
+      // With 100 tokens, there may be few or no related symbols
+      expect(result.tokenCount).toBeLessThanOrEqual(result.budget);
+    });
+  });
+
   // stats tests
   describe('stats', () => {
+    it('hotspots are sorted by complexity descending', () => {
+      const result = extractor.stats();
+      for (let i = 1; i < result.hotspots.length; i++) {
+        expect(result.hotspots[i - 1].metrics.complexity).toBeGreaterThanOrEqual(
+          result.hotspots[i].metrics.complexity
+        );
+      }
+    });
+
     it('returns correct totals and hotspots', () => {
       const result = extractor.stats();
       expect(result.totalFiles).toBeGreaterThan(0);

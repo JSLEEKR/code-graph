@@ -101,6 +101,16 @@ describe('CodeGraph', () => {
     expect(node!.symbol.name).toBe('greet');
   });
 
+  it('getMetrics returns correct metrics for a fixture function', () => {
+    const simplePath = resolve(fixtureDir, 'simple.ts');
+    const greetId = `${simplePath}::greet`;
+    const metrics = graph.getMetrics(greetId);
+    expect(metrics.lineCount).toBeGreaterThan(0);
+    expect(metrics.complexity).toBeGreaterThanOrEqual(1);
+    expect(metrics.callerCount).toBeGreaterThanOrEqual(2); // farewell + greetUser
+    expect(metrics.calleeCount).toBe(0); // greet calls nothing
+  });
+
   it('assertBuilt throws before build', () => {
     const freshGraph = new CodeGraph();
     expect(() => freshGraph.getAllNodes()).toThrow(GraphNotBuiltError);

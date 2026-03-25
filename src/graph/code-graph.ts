@@ -1,9 +1,10 @@
 import { readFileSync } from 'fs';
 import { resolve, dirname, extname } from 'path';
-import type { GraphNode, GraphEdge, LanguagePlugin, ParseResult, ImportInfo } from '../types.js';
+import type { GraphNode, GraphEdge, LanguagePlugin, ParseResult, ImportInfo, SymbolMetrics } from '../types.js';
 import { GraphNotBuiltError, SymbolNotFoundError } from '../errors.js';
 import { PluginRegistry } from '../plugins/plugin-registry.js';
 import { scanFiles } from './file-scanner.js';
+import { computeSymbolMetrics } from './metrics.js';
 
 export class CodeGraph {
   private nodes = new Map<string, GraphNode>();
@@ -243,6 +244,15 @@ export class CodeGraph {
     if (matches.length === 1) return matches[0].id;
     // Multiple matches - throw with candidates
     throw new SymbolNotFoundError(`${shortName} (ambiguous: ${matches.map(m => m.id).join(', ')})`);
+  }
+
+  getMetrics(symbolId: string): SymbolMetrics {
+    this.assertBuilt();
+    const node = this.nodes.get(symbolId);
+    if (!node) throw new SymbolNotFoundError(symbolId);
+    const callerCount = this.getCallers(symbolId).length;
+    const calleeCount = this.getCallees(symbolId).length;
+    return computeSymbolMetrics(node.symbol, callerCount, calleeCount);
   }
 
   serialize(): string {
