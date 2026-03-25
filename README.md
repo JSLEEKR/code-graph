@@ -5,7 +5,7 @@
 **Smart context extraction for AI coding tools**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-49%20passing-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-52%20passing-brightgreen.svg)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Extract exactly the code context an AI needs -- nothing more, nothing less.
@@ -53,6 +53,37 @@ AI coding tools waste tokens by reading entire files when they only need a few f
 | **Plugin system** | Add language support via plugins |
 | **MCP server** | Integrate directly with Claude Code and AI agents |
 | **CLI** | 7 commands for terminal workflows |
+
+## When to Use This
+
+| Scenario | What You Do | What code-graph Does |
+|----------|-------------|---------------------|
+| **Debugging** | `context handleRequest --mode debug` | Traces callees to find where bugs propagate |
+| **Refactoring** | `context validateInput --mode refactor` | Finds all callers that need updating |
+| **PR Review** | `context processOrder --mode review` | Balanced view of callers and callees |
+| **QA / Impact** | `impact validateInput` | Shows risk level and all affected files |
+
+## Practical Tips
+
+| Tip | Details |
+|-----|---------|
+| Start with small budgets | Use `--budget 500` first, increase if you need more context |
+| Use `stats` to find hotspots | High-complexity symbols are good refactoring targets |
+| Chain commands | Run `impact` first to find risky symbols, then `context` for details |
+| Cache your graph | `build` once, query many times -- the cache handles incremental updates |
+| Use MCP for AI workflows | Connect to Claude Code for automatic context extraction |
+
+## How It Saves Tokens
+
+Traditional approach: send entire files to AI, wasting tokens on irrelevant code.
+
+| Approach | Tokens Sent | Relevant Code |
+|----------|-------------|---------------|
+| **Whole file** | ~2,000 | 1 function out of 20 |
+| **code-graph (budget: 500)** | ~487 | Target + 2 related symbols |
+| **Savings** | **75% fewer tokens** | **100% relevant** |
+
+With `code-graph`, a 500-token budget extracts only the target function and its direct dependencies -- exactly what the AI needs to understand the context.
 
 ## Quick Start
 
@@ -268,13 +299,13 @@ if (cached) {
 npm test
 ```
 
-49 tests across 7 test suites:
+52 tests across 7 test suites:
 - TypeScript plugin (7 tests)
 - Python plugin (5 tests)
-- Code graph engine (10 tests)
+- Code graph engine (11 tests)
 - Metrics (4 tests)
 - Cache manager (5 tests)
-- Context extractor (14 tests)
+- Context extractor (16 tests)
 - Integration: full pipeline (4 tests)
 
 ## License
