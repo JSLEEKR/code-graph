@@ -302,6 +302,34 @@ export class ContextExtractor {
     };
   }
 
+  formatContextAsText(bundle: ContextBundle): string {
+    const lines: string[] = [];
+
+    lines.push(`=== Context for: ${bundle.target.name} ===`);
+    lines.push(`Budget: ${bundle.tokenCount}/${bundle.budget} tokens`);
+    lines.push('');
+
+    // Target
+    lines.push('--- Target ---');
+    const targetStartLine = bundle.target.startLine;
+    const targetEndLine = bundle.target.endLine;
+    lines.push(`// ${bundle.target.filePath}:${targetStartLine}-${targetEndLine}`);
+    lines.push(bundle.target.source);
+    lines.push('');
+
+    // Related
+    if (bundle.related.length > 0) {
+      lines.push(`--- Related (${bundle.related.length} symbol${bundle.related.length > 1 ? 's' : ''}) ---`);
+      for (const symbol of bundle.related) {
+        lines.push(`// ${symbol.filePath}:${symbol.startLine}-${symbol.endLine}`);
+        lines.push(symbol.source);
+        lines.push('');
+      }
+    }
+
+    return lines.join('\n');
+  }
+
   private extToLang(ext: string): string {
     const map: Record<string, string> = {
       '.ts': 'TypeScript',

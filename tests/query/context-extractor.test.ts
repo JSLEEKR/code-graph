@@ -156,6 +156,30 @@ describe('ContextExtractor', () => {
     });
   });
 
+  // formatContextAsText tests
+  describe('formatContextAsText', () => {
+    it('formats target and related symbols as readable text', () => {
+      const bundle = extractor.extract('farewell', { budget: 5000, mode: 'debug' });
+      const text = extractor.formatContextAsText(bundle);
+      expect(text).toContain('=== Context for: farewell ===');
+      expect(text).toContain('Budget:');
+      expect(text).toContain('--- Target ---');
+      expect(text).toContain('function farewell');
+      expect(text).toContain('--- Related');
+    });
+
+    it('omits related section when no related symbols', () => {
+      const bundle = extractor.extract('greet', { budget: 20, mode: 'debug' });
+      const text = extractor.formatContextAsText(bundle);
+      expect(text).toContain('=== Context for: greet ===');
+      expect(text).toContain('--- Target ---');
+      // With budget of 20, no related symbols should fit
+      if (bundle.related.length === 0) {
+        expect(text).not.toContain('--- Related');
+      }
+    });
+  });
+
   // small budget test
   describe('small budget extraction', () => {
     it('only includes target with very small budget (100 tokens)', () => {
