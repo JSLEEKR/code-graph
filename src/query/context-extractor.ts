@@ -302,6 +302,82 @@ export class ContextExtractor {
     };
   }
 
+  extractFromDiff(diffFiles: string[], options: ContextOptions): ContextBundle {
+    const allNodes = this.graph.getAllNodes();
+
+    // Find all symbols in the changed files
+    const changedSymbols = allNodes.filter(n =>
+      diffFiles.some(f => n.symbol.filePath.endsWith(f) || f.endsWith(n.symbol.filePath) || n.symbol.filePath === f)
+    );
+
+    if (changedSymbols.length === 0) {
+      // Return an empty-like bundle
+      return {
+        target: { id: '', name: '(no symbols in diff)', kind: 'function', filePath: '', startLine: 0, endLine: 0, source: '' },
+        related: [],
+        graph: { nodes: [], edges: [] },
+        tokenCount: 0,
+        budget: options.budget,
+        summary: 'No symbols found in changed files',
+      };
+    }
+
+    // Split the budget evenly among changed symbols
+    const perSymbolBudget = Math.floor(options.budget / changedSymbols.length);
+
+    const allRelated: typeof allNodes[0]['symbol'][] = [];
+    const allGraphNodes = new Set<string>();
+    const allGraphEdges: GraphEdge[] = [];
+    let totalTokens = 0;
+
+    // Use the first changed symbol as the "target"
+    const primaryTarget = changedSymbols[0];
+    allGraphNodes.add(primaryTarget.id);
+
+    for (const node of changedSymbols) {
+      const symbolBudget = Math.max(perSymbolBudget, 100);
+      try {
+        const bundle = this.extract(node.symbol.name, {
+          ...options,
+          budget: symbolBudget,
+        });
+        // Collect related symbols (avoid duplicates)
+        for (const rel of bundle.related) {
+          if (!allRelated.some(r => r.id === rel.id) && rel.id !== primaryTarget.symbol.id) {
+            allRelated.push(rel);
+          }
+        }
+        for (const nid of bundle.graph.nodes) allGraphNodes.add(nid);
+        for (const edge of bundle.graph.edges) {
+          if (!allGraphEdges.some(e => e.id === edge.id)) allGraphEdges.push(edge);
+        }
+        totalTokens += bundle.tokenCount;
+      } catch {
+        // Skip symbols that can't be resolved (ambiguous names)
+        continue;
+      }
+    }
+
+    // Add non-primary changed symbols to related
+    for (const node of changedSymbols.slice(1)) {
+      if (!allRelated.some(r => r.id === node.symbol.id)) {
+        allRelated.push(node.symbol);
+      }
+      allGraphNodes.add(node.id);
+    }
+
+    const summary = `diff-context: ${changedSymbols.length} changed symbols across ${diffFiles.length} files`;
+
+    return {
+      target: primaryTarget.symbol,
+      related: allRelated,
+      graph: { nodes: [...allGraphNodes], edges: allGraphEdges },
+      tokenCount: Math.min(totalTokens, options.budget),
+      budget: options.budget,
+      summary,
+    };
+  }
+
   formatContextAsText(bundle: ContextBundle): string {
     const lines: string[] = [];
 

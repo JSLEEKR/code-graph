@@ -192,6 +192,31 @@ describe('ContextExtractor', () => {
     });
   });
 
+  // extractFromDiff tests
+  describe('extractFromDiff', () => {
+    it('extracts context for changed files', () => {
+      const bundle = extractor.extractFromDiff(['simple.ts'], {
+        budget: 5000,
+        mode: 'debug',
+      });
+      expect(bundle.summary).toContain('diff-context');
+      expect(bundle.summary).toContain('changed symbols');
+      // Should find symbols in simple.ts
+      expect(bundle.target.name).toBeTruthy();
+      expect(bundle.tokenCount).toBeGreaterThan(0);
+    });
+
+    it('returns empty bundle for non-existent files', () => {
+      const bundle = extractor.extractFromDiff(['nonexistent-file.ts'], {
+        budget: 5000,
+        mode: 'debug',
+      });
+      expect(bundle.summary).toBe('No symbols found in changed files');
+      expect(bundle.tokenCount).toBe(0);
+      expect(bundle.related).toEqual([]);
+    });
+  });
+
   // empty graph test
   describe('empty graph edge case', () => {
     it('search returns empty array when no symbols match', () => {

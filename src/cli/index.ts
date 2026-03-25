@@ -123,7 +123,24 @@ program.command('stats')
     }
   });
 
-// serve — MCP server over stdio
+// diff-context
+program.command('diff-context')
+  .argument('<files...>')
+  .option('--budget <n>', 'Token budget', '3000')
+  .option('--mode <mode>', 'Context mode', 'review')
+  .action(async (files: string[], opts) => {
+    const graph = await getGraph(process.cwd());
+    const extractor = new ContextExtractor(graph);
+    const bundle = extractor.extractFromDiff(files, {
+      budget: parseInt(opts.budget),
+      mode: opts.mode,
+    });
+    const text = extractor.formatContextAsText(bundle);
+    console.log(text);
+    console.log(`\n${bundle.summary}`);
+  });
+
+// serve -- MCP server over stdio
 program.command('serve')
   .description('Start MCP server for AI agent integration')
   .action(async () => {
