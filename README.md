@@ -5,7 +5,7 @@
 **Smart context extraction for AI coding tools**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-54%20passing-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-66%20passing-brightgreen.svg)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Extract exactly the code context an AI needs -- nothing more, nothing less.
@@ -46,13 +46,15 @@ AI coding tools waste tokens by reading entire files when they only need a few f
 | **Context modes** | `debug`, `refactor`, `review` -- each prioritizes differently |
 | **Impact analysis** | Find all callers affected by changing a symbol |
 | **Cross-file resolution** | Follows imports across file boundaries |
-| **Symbol search** | Fuzzy name matching with relevance scoring |
+| **Symbol search** | Fuzzy name matching with Levenshtein distance scoring |
+| **Diff-based context** | Extract context for changed files in a diff |
 | **Dependency chains** | Trace upstream/downstream dependencies |
-| **Codebase stats** | File counts, symbol counts, complexity hotspots |
+| **Codebase stats** | File counts, symbol counts, complexity hotspots with full metrics |
 | **Incremental caching** | Rebuild only changed files |
 | **Plugin system** | Add language support via plugins |
 | **MCP server** | Integrate directly with Claude Code and AI agents |
-| **CLI** | 7 commands for terminal workflows |
+| **Metrics in output** | Complexity, line count, callers/callees shown in context and stats |
+| **CLI** | 8 commands for terminal workflows |
 
 ## When to Use This
 
@@ -161,6 +163,7 @@ code-graph <command> [options]
 | `search` | Search symbols by name | `code-graph search handle` |
 | `deps` | Show dependency chain | `code-graph deps myFunc --direction upstream` |
 | `stats` | Show codebase statistics | `code-graph stats --path ./src` |
+| `diff-context` | Context for changed files | `code-graph diff-context src/api.ts src/util.ts` |
 | `serve` | Start MCP server (stdio) | `code-graph serve` |
 
 ## MCP Server
@@ -279,10 +282,12 @@ if (cached) {
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `extract(target, options)` | `ContextBundle` | Budget-constrained context extraction |
+| `extractFromDiff(files, options)` | `ContextBundle` | Diff-based context for changed files |
 | `impact(target)` | `ImpactResult` | Change impact analysis |
-| `search(query)` | `SearchResult[]` | Symbol search with scoring |
+| `search(query)` | `SearchResult[]` | Symbol search with Levenshtein fuzzy matching |
 | `dependencies(target, dir, depth?)` | `DependencyChain` | Dependency chain traversal |
 | `stats(path?)` | `CodeStats` | Codebase statistics |
+| `formatContextAsText(bundle)` | `string` | Format context bundle with metrics |
 
 ### CacheManager
 
@@ -299,13 +304,13 @@ if (cached) {
 npm test
 ```
 
-54 tests across 7 test suites:
-- TypeScript plugin (7 tests)
-- Python plugin (5 tests)
-- Code graph engine (11 tests)
-- Metrics (4 tests)
-- Cache manager (5 tests)
-- Context extractor (18 tests)
+66 tests across 7 test suites:
+- TypeScript plugin (9 tests) -- arrow functions, type aliases, imports, calls
+- Python plugin (6 tests) -- decorators, __init__ method, class methods
+- Code graph engine (12 tests) -- mixed TypeScript + Python support
+- Metrics (4 tests) -- complexity, token estimation, symbol metrics
+- Cache manager (5 tests) -- save, load, changed files, clear
+- Context extractor (26 tests) -- diff-context, fuzzy search, metrics output, edge cases
 - Integration: full pipeline (4 tests)
 
 ## License

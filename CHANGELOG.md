@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-03-25
+
+### Added
+- **Diff-based context extraction** -- `extractFromDiff(files, options)` extracts context for changed files, splits budget across symbols
+- **CLI diff-context command** -- `code-graph diff-context <files...>` for PR/commit context
+- **Levenshtein fuzzy search** -- search now returns fuzzy matches (edit distance <= 2) with score 0.3
+- **Metrics in output** -- `context` command shows complexity/lines/callers/callees; `stats` shows full metrics for hotspots
+- **Metrics in formatContextAsText** -- formatted output includes complexity and line count comments
+- **Arrow function tests** -- TypeScript plugin tested with arrow functions and type alias extraction
+- **Decorator/init tests** -- Python plugin tested with decorators and `__init__` method
+- **Mixed-language test** -- CodeGraph tested with TypeScript + Python fixtures together
+- **Edge case tests** -- empty graph, unknown symbol, non-existent diff files
+- **66 tests** across 7 test suites (12 new tests)
+
 ## [0.2.0] - 2026-03-25
 
 ### Added
