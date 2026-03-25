@@ -3,6 +3,7 @@ import { resolve } from 'path';
 import { CodeGraph } from '../../src/graph/code-graph.js';
 import { ContextExtractor } from '../../src/query/context-extractor.js';
 import { TypeScriptPlugin } from '../../src/plugins/typescript.js';
+import { SymbolNotFoundError } from '../../src/errors.js';
 
 describe('ContextExtractor', () => {
   let graph: CodeGraph;
@@ -188,6 +189,19 @@ describe('ContextExtractor', () => {
       expect(result.tokenCount).toBeLessThanOrEqual(100);
       // With 100 tokens, there may be few or no related symbols
       expect(result.tokenCount).toBeLessThanOrEqual(result.budget);
+    });
+  });
+
+  // empty graph test
+  describe('empty graph edge case', () => {
+    it('search returns empty array when no symbols match', () => {
+      const results = extractor.search('zzzznonexistent');
+      expect(results).toEqual([]);
+    });
+
+    it('extract throws for unknown symbol on empty-like query', () => {
+      expect(() => extractor.extract('zzzznonexistent', { budget: 5000, mode: 'debug' }))
+        .toThrow(SymbolNotFoundError);
     });
   });
 

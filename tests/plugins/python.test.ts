@@ -75,4 +75,30 @@ describe('PythonPlugin', () => {
     expect(greetCall).toBeDefined();
     expect(greetCall!.filePath).toBe(path);
   });
+
+  it('extracts decorated functions and __init__ method', () => {
+    const { path, source } = loadFixture('decorators.py');
+    const result = plugin.parse(path, source);
+
+    // log_calls is a top-level function (decorator)
+    const logCalls = result.symbols.find(s => s.name === 'log_calls');
+    expect(logCalls).toBeDefined();
+    expect(logCalls!.kind).toBe('function');
+
+    // compute is a decorated top-level function
+    const compute = result.symbols.find(s => s.name === 'compute');
+    expect(compute).toBeDefined();
+    expect(compute!.kind).toBe('function');
+
+    // __init__ is a method of Calculator
+    const init = result.symbols.find(s => s.name === '__init__' && s.kind === 'method');
+    expect(init).toBeDefined();
+    expect(init!.parentSymbol).toContain('Calculator');
+    expect(init!.params).toContain('name');
+
+    // multiply is a method
+    const multiply = result.symbols.find(s => s.name === 'multiply' && s.kind === 'method');
+    expect(multiply).toBeDefined();
+    expect(multiply!.params).toEqual(expect.arrayContaining(['a', 'b']));
+  });
 });

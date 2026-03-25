@@ -99,4 +99,37 @@ describe('TypeScriptPlugin', () => {
       expect(sym.source).toContain(sym.name);
     }
   });
+
+  it('extracts arrow functions with params', () => {
+    const { path, source } = loadFixture('arrows.ts');
+    const result = plugin.parse(path, source);
+
+    const double = result.symbols.find(s => s.name === 'double');
+    expect(double).toBeDefined();
+    expect(double!.kind).toBe('function');
+    expect(double!.params).toContain('x');
+
+    const addPoints = result.symbols.find(s => s.name === 'addPoints');
+    expect(addPoints).toBeDefined();
+    expect(addPoints!.kind).toBe('function');
+    expect(addPoints!.params).toEqual(expect.arrayContaining(['a', 'b']));
+
+    // transform calls double
+    const transformId = `${path}::transform`;
+    const callsDouble = result.calls.find(
+      c => c.callerSymbol === transformId && c.calleeName === 'double',
+    );
+    expect(callsDouble).toBeDefined();
+  });
+
+  it('extracts type aliases', () => {
+    const { path, source } = loadFixture('arrows.ts');
+    const result = plugin.parse(path, source);
+
+    const point = result.symbols.find(s => s.name === 'Point');
+    expect(point).toBeDefined();
+    expect(point!.kind).toBe('type');
+    expect(point!.source).toContain('x: number');
+    expect(point!.source).toContain('y: number');
+  });
 });

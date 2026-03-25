@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { resolve } from 'path';
 import { CodeGraph } from '../../src/graph/code-graph.js';
 import { TypeScriptPlugin } from '../../src/plugins/typescript.js';
+import { PythonPlugin } from '../../src/plugins/python.js';
 import { GraphNotBuiltError, SymbolNotFoundError } from '../../src/errors.js';
 
 describe('CodeGraph', () => {
@@ -115,5 +116,32 @@ describe('CodeGraph', () => {
     const freshGraph = new CodeGraph();
     expect(() => freshGraph.getAllNodes()).toThrow(GraphNotBuiltError);
     expect(() => freshGraph.getNode('anything')).toThrow(GraphNotBuiltError);
+  });
+
+  describe('mixed TypeScript + Python', () => {
+    let mixedGraph: CodeGraph;
+
+    beforeAll(async () => {
+      mixedGraph = new CodeGraph();
+      await mixedGraph.build(resolve('fixtures'), [new TypeScriptPlugin(), new PythonPlugin()]);
+    });
+
+    it('contains symbols from both languages', () => {
+      const allNodes = mixedGraph.getAllNodes();
+      const names = allNodes.map(n => n.symbol.name);
+      // TypeScript symbols
+      expect(names).toContain('greet');
+      expect(names).toContain('User');
+      // Python symbols
+      expect(names).toContain('get_display_name');
+      expect(names).toContain('greet_user');
+
+      // Check we have both .ts and .py files
+      const files = new Set(allNodes.map(n => n.symbol.filePath));
+      const hasTsFiles = [...files].some(f => f.endsWith('.ts'));
+      const hasPyFiles = [...files].some(f => f.endsWith('.py'));
+      expect(hasTsFiles).toBe(true);
+      expect(hasPyFiles).toBe(true);
+    });
   });
 });
