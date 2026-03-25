@@ -5,7 +5,7 @@
 **Smart context extraction for AI coding tools**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-52%20passing-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-54%20passing-brightgreen.svg)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Extract exactly the code context an AI needs -- nothing more, nothing less.
@@ -299,13 +299,13 @@ if (cached) {
 npm test
 ```
 
-52 tests across 7 test suites:
+54 tests across 7 test suites:
 - TypeScript plugin (7 tests)
 - Python plugin (5 tests)
 - Code graph engine (11 tests)
 - Metrics (4 tests)
 - Cache manager (5 tests)
-- Context extractor (16 tests)
+- Context extractor (18 tests)
 - Integration: full pipeline (4 tests)
 
 ## License

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2026-03-25
+
+### Added
+- **Package metadata** -- description, repository, keywords, and files fields in package.json
+- **GitHub topics** -- typescript, code-analysis, ast, developer-tools, mcp, ai, context, code-graph, cli, refactoring
+- **getMetrics method** -- `CodeGraph.getMetrics(symbolId)` returns complexity, caller/callee counts, line count, param count
+- **formatContextAsText** -- `ContextExtractor.formatContextAsText(bundle)` formats context bundles as AI-ready text blocks
+- **README improvements** -- "When to Use This" table, "Practical Tips", "How It Saves Tokens" comparison
+- **5 new tests** -- getMetrics, hotspot sorting, small-budget extraction, formatContextAsText (2 tests)
+- **54 tests** across 7 test suites
+
 ## [0.1.0] - 2026-03-25
 
 ### Added
