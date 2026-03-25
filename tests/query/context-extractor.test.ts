@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { resolve } from 'path';
 import { CodeGraph } from '../../src/graph/code-graph.js';
-import { ContextExtractor } from '../../src/query/context-extractor.js';
+import { ContextExtractor, levenshtein } from '../../src/query/context-extractor.js';
 import { TypeScriptPlugin } from '../../src/plugins/typescript.js';
 import { SymbolNotFoundError } from '../../src/errors.js';
 
@@ -112,6 +112,22 @@ describe('ContextExtractor', () => {
         expect(r.name).toBeDefined();
         expect(r.kind).toBeDefined();
       }
+    });
+
+    it('returns fuzzy matches with score 0.3', () => {
+      // 'greet' vs 'greel' has Levenshtein distance 1
+      const results = extractor.search('greel');
+      const fuzzy = results.find(r => r.name === 'greet');
+      expect(fuzzy).toBeDefined();
+      expect(fuzzy!.score).toBe(0.3);
+    });
+
+    it('levenshtein distance is correct', () => {
+      expect(levenshtein('kitten', 'sitting')).toBe(3);
+      expect(levenshtein('greet', 'greel')).toBe(1);
+      expect(levenshtein('abc', 'abc')).toBe(0);
+      expect(levenshtein('', 'abc')).toBe(3);
+      expect(levenshtein('abc', '')).toBe(3);
     });
 
     it('ranks exact matches highest', () => {
