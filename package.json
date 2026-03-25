@@ -1,0 +1,11 @@
+{
+  "name": "code-graph",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": { "code-graph": "./dist/cli/index.js" },
+  "scripts": { "build": "tsc", "test": "vitest run" },
+  "dependencies": { "commander": "^13.0.0", "web-tree-sitter": "^0.25.3" },
+  "devDependencies": { "@types/node": "^22.0.0", "typescript": "^5.4.0", "vitest": "^3.0.0" }
+}
