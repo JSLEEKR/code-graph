@@ -123,12 +123,12 @@ program.command('stats')
     }
   });
 
-// serve (stub for now — Task 9 implements MCP)
+// serve — MCP server over stdio
 program.command('serve')
-  .option('--port <n>', 'Port', '3000')
-  .action((opts) => {
-    console.log(`MCP server would start on port ${opts.port}...`);
-    console.log('(MCP implementation pending)');
+  .description('Start MCP server for AI agent integration')
+  .action(async () => {
+    const { startMCPServer } = await import('../mcp/server.js');
+    await startMCPServer();
   });
 
 program.parse();

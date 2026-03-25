@@ -8,3 +8,4 @@ export { CodeGraph } from './graph/code-graph.js';
 export { computeComplexity, estimateTokens, computeSymbolMetrics } from './graph/metrics.js';
 export { ContextExtractor } from './query/context-extractor.js';
 export { CacheManager } from './cache/cache-manager.js';
+export { startMCPServer } from './mcp/server.js';
