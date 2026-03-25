@@ -185,6 +185,21 @@ describe('ContextExtractor', () => {
       expect(text).toContain('--- Related');
     });
 
+    it('includes metrics in formatted output', () => {
+      const bundle = extractor.extract('farewell', { budget: 5000, mode: 'debug' });
+      const text = extractor.formatContextAsText(bundle);
+      expect(text).toContain('Metrics:');
+      expect(text).toContain('complexity=');
+      expect(text).toContain('lines=');
+    });
+
+    it('shows callers and callees in target metrics', () => {
+      const bundle = extractor.extract('greet', { budget: 5000, mode: 'debug' });
+      const text = extractor.formatContextAsText(bundle);
+      expect(text).toContain('callers=');
+      expect(text).toContain('callees=');
+    });
+
     it('omits related section when no related symbols', () => {
       const bundle = extractor.extract('greet', { budget: 20, mode: 'debug' });
       const text = extractor.formatContextAsText(bundle);

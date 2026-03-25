@@ -391,19 +391,33 @@ export class ContextExtractor {
     lines.push(`Budget: ${bundle.tokenCount}/${bundle.budget} tokens`);
     lines.push('');
 
-    // Target
+    // Target with metrics
     lines.push('--- Target ---');
     const targetStartLine = bundle.target.startLine;
     const targetEndLine = bundle.target.endLine;
     lines.push(`// ${bundle.target.filePath}:${targetStartLine}-${targetEndLine}`);
+    try {
+      const targetId = this.graph.resolveSymbol(bundle.target.name);
+      const metrics = this.graph.getMetrics(targetId);
+      lines.push(`// Metrics: complexity=${metrics.complexity}, lines=${metrics.lineCount}, callers=${metrics.callerCount}, callees=${metrics.calleeCount}`);
+    } catch {
+      // skip metrics if symbol cannot be resolved
+    }
     lines.push(bundle.target.source);
     lines.push('');
 
-    // Related
+    // Related with metrics
     if (bundle.related.length > 0) {
       lines.push(`--- Related (${bundle.related.length} symbol${bundle.related.length > 1 ? 's' : ''}) ---`);
       for (const symbol of bundle.related) {
         lines.push(`// ${symbol.filePath}:${symbol.startLine}-${symbol.endLine}`);
+        try {
+          const symId = this.graph.resolveSymbol(symbol.name);
+          const metrics = this.graph.getMetrics(symId);
+          lines.push(`// Metrics: complexity=${metrics.complexity}, lines=${metrics.lineCount}`);
+        } catch {
+          // skip metrics if symbol cannot be resolved
+        }
         lines.push(symbol.source);
         lines.push('');
       }

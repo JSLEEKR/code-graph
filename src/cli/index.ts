@@ -52,10 +52,21 @@ program.command('context')
     const ctx = extractor.extract(target, { budget: parseInt(opts.budget), mode: opts.mode });
     console.log(`\n${ctx.summary}`);
     console.log(`\nTokens: ${ctx.tokenCount} / ${ctx.budget}`);
+
+    // Show target with metrics
+    const targetMetrics = graph.getMetrics(graph.resolveSymbol(target));
     console.log(`\nTarget: ${ctx.target.name} (${ctx.target.filePath}:${ctx.target.startLine})`);
-    console.log(`Related: ${ctx.related.length} symbols`);
+    console.log(`  Complexity: ${targetMetrics.complexity}, Lines: ${targetMetrics.lineCount}, Params: ${targetMetrics.paramCount}`);
+    console.log(`  Callers: ${targetMetrics.callerCount}, Callees: ${targetMetrics.calleeCount}`);
+
+    console.log(`\nRelated: ${ctx.related.length} symbols`);
     for (const r of ctx.related) {
-      console.log(`  - ${r.name} (${r.kind}, ${r.filePath}:${r.startLine})`);
+      try {
+        const rMetrics = graph.getMetrics(graph.resolveSymbol(r.name));
+        console.log(`  - ${r.name} (${r.kind}) [complexity: ${rMetrics.complexity}, lines: ${rMetrics.lineCount}]`);
+      } catch {
+        console.log(`  - ${r.name} (${r.kind}, ${r.filePath}:${r.startLine})`);
+      }
     }
   });
 
@@ -116,9 +127,12 @@ program.command('stats')
       console.log(`  ${lang}: ${data.files} files, ${data.symbols} symbols`);
     }
     if (s.hotspots.length > 0) {
-      console.log('Hotspots (highest complexity):');
+      console.log('\nTop 5 Hotspots:');
       for (const h of s.hotspots.slice(0, 5)) {
-        console.log(`  ${h.symbolId} (complexity: ${h.metrics.complexity})`);
+        const m = h.metrics;
+        console.log(`  ${h.symbolId}`);
+        console.log(`    Complexity: ${m.complexity}, Lines: ${m.lineCount}, Params: ${m.paramCount}`);
+        console.log(`    Callers: ${m.callerCount}, Callees: ${m.calleeCount}`);
       }
     }
   });
