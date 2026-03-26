@@ -493,6 +493,74 @@ if (cached) {
 | `getChangedFiles(cur, saved)` | `Promise<string[]>` | Diff file modification times |
 | `clear()` | `Promise<void>` | Delete cache directory |
 
+## Graph JSON Format (Interop)
+
+The serialized graph (from `graph.serialize()` or `.code-graph/cache.json`) uses the following JSON structure, designed for consumption by external tools:
+
+```jsonc
+{
+  // Wrapper in cache.json:
+  "graphData": "<serialized graph string>",
+  "fileMtimes": { "src/app.ts": 1700000000000 },
+  "savedAt": "2026-03-26T00:00:00.000Z"
+}
+
+// The graphData string, when parsed, contains:
+{
+  "nodes": {
+    "src/app.ts::handleRequest": {
+      "id": "src/app.ts::handleRequest",
+      "symbol": {
+        "id": "src/app.ts::handleRequest",
+        "name": "handleRequest",
+        "kind": "function",           // "function" | "method" | "class" | "interface" | "type"
+        "filePath": "src/app.ts",
+        "startLine": 5,
+        "endLine": 15,
+        "source": "function handleRequest(...) { ... }",
+        "params": ["req", "res"],     // optional
+        "parentSymbol": "src/app.ts::Server",  // optional, for methods
+        "returnType": "Response"      // optional
+      },
+      "edges": {
+        "in": ["edge-1", "edge-3"],   // incoming edge IDs (callers)
+        "out": ["edge-2"]             // outgoing edge IDs (callees)
+      }
+    }
+  },
+  "edges": {
+    "edge-1": {
+      "id": "edge-1",
+      "type": "calls",               // "calls" | "imports" | "implements" | "type_ref"
+      "from": "src/router.ts::route",
+      "to": "src/app.ts::handleRequest",
+      "filePath": "src/router.ts",
+      "line": 10
+    }
+  }
+}
+```
+
+**Symbol ID format:** `<filePath>::<symbolName>` (e.g., `src/app.ts::handleRequest`)
+
+**Consuming the graph in external tools:**
+```typescript
+import { readFileSync } from 'fs';
+
+const cache = JSON.parse(readFileSync('.code-graph/cache.json', 'utf-8'));
+const graph = JSON.parse(cache.graphData);
+
+// Access all symbols
+for (const [id, node] of Object.entries(graph.nodes)) {
+  console.log(id, node.symbol.kind, node.symbol.startLine);
+}
+
+// Access all edges
+for (const [id, edge] of Object.entries(graph.edges)) {
+  console.log(`${edge.from} --${edge.type}--> ${edge.to}`);
+}
+```
+
 ## Troubleshooting / FAQ
 
 **Q: `GraphNotBuiltError: Graph not built. Run build() first.`**
