@@ -493,6 +493,63 @@ if (cached) {
 | `getChangedFiles(cur, saved)` | `Promise<string[]>` | Diff file modification times |
 | `clear()` | `Promise<void>` | Delete cache directory |
 
+## Troubleshooting / FAQ
+
+**Q: `GraphNotBuiltError: Graph not built. Run build() first.`**
+A: You need to build the code graph before querying. Run `npx code-graph build --root .` or call `graph.build()` in the API.
+
+**Q: `SymbolNotFoundError: Symbol not found: "myFunc"`**
+A: The symbol may not exist or may have a different name. Use `npx code-graph search myFunc` to find similar symbols. If you just added the file, rebuild with `npx code-graph build`.
+
+**Q: Build is slow on a large codebase**
+A: The first build parses all files. Subsequent builds use incremental caching (only re-parse changed files). The cache is stored in `.code-graph/cache.json`.
+
+**Q: Can I use code-graph with JavaScript files?**
+A: The TypeScript plugin handles `.ts` and `.tsx` files. Plain `.js/.jsx` files are not supported yet, but you can implement a custom `LanguagePlugin`.
+
+**Q: How do I reset the cache?**
+A: Delete the `.code-graph/` directory, or use `CacheManager.clear()` in the API.
+
+**Q: MCP server does not start**
+A: Ensure you have built the project first (`npm run build`). The MCP server requires the compiled `dist/` output. Check that `@modelcontextprotocol/sdk` is installed.
+
+### CLI Usage Examples
+
+```bash
+# Build graph for the current directory
+npx code-graph build
+
+# Build graph for a specific directory
+npx code-graph build --root ./src
+
+# Extract context in debug mode (traces callees)
+npx code-graph context handleRequest --budget 1000 --mode debug
+
+# Extract context in refactor mode (traces callers)
+npx code-graph context validateInput --budget 2000 --mode refactor
+
+# Impact analysis -- find what breaks if you change a function
+npx code-graph impact validateInput
+
+# Search for symbols by name (supports fuzzy matching)
+npx code-graph search user
+
+# Show dependency chain (upstream = what it calls)
+npx code-graph deps processUser --direction upstream
+
+# Show dependency chain (downstream = what calls it)
+npx code-graph deps greet --direction downstream
+
+# Get codebase statistics and complexity hotspots
+npx code-graph stats
+
+# Extract context for files changed in a diff
+npx code-graph diff-context src/api.ts src/util.ts --budget 3000
+
+# Start MCP server for AI agent integration
+npx code-graph serve
+```
+
 ## Testing
 
 ```bash
