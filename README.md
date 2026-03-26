@@ -209,6 +209,155 @@ interface Profile { id: string; name: string; }
 function buildProfile(user: User): Profile { ... }
 ```
 
+## How Token Budget BFS Works (Detailed Walkthrough)
+
+This section walks through the core algorithm step-by-step with a concrete example.
+
+**Setup:** You have a codebase with these symbols:
+
+```
+src/api.ts     → handleRequest (80 chars), validateInput (60 chars), formatResponse (120 chars)
+src/db.ts      → queryUser (200 chars), connectDB (100 chars)
+src/types.ts   → UserType (40 chars)
+```
+
+**Call graph:**
+```
+handleRequest ──calls──► validateInput
+handleRequest ──calls──► queryUser      (cross-file, via import)
+handleRequest ──calls──► formatResponse
+queryUser     ──calls──► connectDB
+validateInput ──caller── formHandler    (formHandler calls validateInput)
+```
+
+**Query:** `extract("handleRequest", { budget: 150, mode: "debug" })`
+
+### Step 1: Include the target
+
+```
+Token estimate: ceil(80 / 4) = 20 tokens
+Budget remaining: 150 - 20 = 130
+Visited: { handleRequest }
+Included: []
+```
+
+### Step 2: Add neighbors to priority queue
+
+In `debug` mode, callees get priority 3 (high), callers get priority 1 (low).
+
+```
+Queue (sorted by priority desc):
+  validateInput   (callee, priority 3)  → ceil(60/4) = 15 tokens
+  queryUser       (callee, priority 3)  → ceil(200/4) = 50 tokens
+  formatResponse  (callee, priority 3)  → ceil(120/4) = 30 tokens
+  formHandler     (caller, priority 1)  → not in our graph, skipped
+```
+
+### Step 3: Process queue items
+
+**Iteration 1:** Dequeue `validateInput` (priority 3)
+```
+Tokens: 15. Fits in budget (130)? YES
+Budget remaining: 130 - 15 = 115
+Included: [validateInput]
+→ Add validateInput's neighbors to queue (none new)
+```
+
+**Iteration 2:** Dequeue `queryUser` (priority 3)
+```
+Tokens: 50. Fits in budget (115)? YES
+Budget remaining: 115 - 50 = 65
+Included: [validateInput, queryUser]
+→ Add queryUser's callees: connectDB (priority 3)
+```
+
+**Iteration 3:** Dequeue `formatResponse` (priority 3)
+```
+Tokens: 30. Fits in budget (65)? YES
+Budget remaining: 65 - 30 = 35
+Included: [validateInput, queryUser, formatResponse]
+```
+
+**Iteration 4:** Dequeue `connectDB` (priority 3, added via queryUser)
+```
+Tokens: ceil(100/4) = 25. Fits in budget (35)? YES
+Budget remaining: 35 - 25 = 10
+Included: [validateInput, queryUser, formatResponse, connectDB]
+```
+
+**Queue empty.** Final result:
+
+```
+ContextBundle {
+  target: handleRequest (20 tokens)
+  related: [validateInput, queryUser, formatResponse, connectDB]
+  tokenCount: 140 / 150
+  summary: "handleRequest (3 lines) + 3 callees"
+}
+```
+
+### Key behaviors
+
+- **Budget is a hard cap:** If a symbol does not fit, it is skipped (not partially included).
+- **BFS, not DFS:** All direct neighbors are explored before going deeper.
+- **Priority queue:** Higher-priority items are dequeued first, so the mode controls what gets included when budget is tight.
+- **Visited set:** Each symbol is considered only once, preventing cycles from causing infinite loops.
+
+## MCP Server Configuration Guide
+
+### Claude Code (Recommended)
+
+Add to your project's `.claude/settings.json` or global `~/.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "code-graph": {
+      "command": "node",
+      "args": ["dist/cli/index.js", "serve"],
+      "cwd": "/path/to/code-graph"
+    }
+  }
+}
+```
+
+Or using npx (if code-graph is installed globally or in the project):
+
+```json
+{
+  "mcpServers": {
+    "code-graph": {
+      "command": "npx",
+      "args": ["code-graph", "serve"]
+    }
+  }
+}
+```
+
+### Prerequisites
+
+1. **Build first:** Run `npm run build` in the code-graph directory to compile TypeScript to `dist/`.
+2. **Graph build:** The MCP server will auto-build the graph on first tool call if no cache exists. For large codebases, pre-build with `npx code-graph build --root .`.
+3. **Dependencies:** Ensure `@modelcontextprotocol/sdk` is installed (`npm install`).
+
+### Available MCP Tools
+
+Once connected, the AI agent can call these tools:
+
+| Tool | Example Prompt | What the Agent Gets |
+|------|---------------|-------------------|
+| `get_context` | "Show me the context for handleRequest" | Token-budgeted code context with related symbols |
+| `get_impact` | "What breaks if I change validateInput?" | Risk level, direct/transitive callers, affected files |
+| `search_symbols` | "Find all user-related functions" | Fuzzy-matched symbol list with scores |
+| `get_dependencies` | "What does processUser depend on?" | Upstream/downstream dependency chain |
+| `get_stats` | "Show codebase statistics" | File/symbol/edge counts, complexity hotspots |
+
+### Troubleshooting MCP
+
+- **Server hangs:** The MCP server communicates via stdio. Do not run it in a terminal that expects interactive input.
+- **No symbols found:** The server uses `process.cwd()` as the root directory. Ensure it is started from (or configured with `cwd` pointing to) your project root.
+- **Stale results:** Delete `.code-graph/cache.json` and restart the server to force a fresh graph build.
+
 ## Features
 
 | Feature | Description |
