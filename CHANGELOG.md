@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2026-03-26 (Cycle 2: Rounds 11-20)
+
+### Added
+- **Token Budget BFS walkthrough** -- step-by-step algorithm explanation with concrete example
+- **MCP Server Configuration Guide** -- Claude Code setup, prerequisites, troubleshooting
+- **Shared test helpers** (`tests/helpers.ts`) -- `buildFixtureGraph`, `buildInlineGraph`, `createTempDir`
+- **12 new tests** (107 total across 15 test suites):
+  - Security: cache poisoning resistance (2), typed error class validation (1)
+  - Code graph: resolveSymbol test (1), getMetrics error test (1)
+  - Integration: TS-only, Python-only, mixed, cache consistency pipelines (4)
+  - Stress: 200-node graph (1), cache rebuild 5x cycle (1), deep chain impact (1)
+
+### Changed
+- Quick Start uses `git clone` instead of `npm install` (package not published)
+- Context mode priority labels use descriptive text (High/Low/Equal) instead of numbers
+- Module path resolution now uses importing file's extension instead of hardcoded `.ts`
+- All catch blocks typed with `(_err: unknown)` and documented
+- MCP server validates input params: rejects null bytes and path traversal
+- Cache loader validates structure before deserialization
+- Removed duplicate Claude Code Integration section (replaced by detailed guide)
+- Added `getMetrics` to API Reference table
+
+### Fixed
+- `resolveModulePath` now correctly resolves `.py` imports for Python files
+- FAQ: added stats `--path` filter explanation, JS plugin cross-reference link
+
 ## [0.4.0] - 2026-03-26 (Cycle 1: Rounds 1-10)
 
 ### Added

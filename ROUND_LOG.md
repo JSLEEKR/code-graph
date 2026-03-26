@@ -20,3 +20,24 @@
 - **Test suites:** 7 -> 13
 - **All 95 tests pass 3/3 runs**
 - **tsc --noEmit: clean**
+
+## Cycle 2 (Rounds 11-20)
+
+| Round | Perspective | Focus | Changes | Tests |
+|-------|------------|-------|---------|-------|
+| 11 | User | UX refinements | Fixed Quick Start, clarified mode priorities, added FAQ entries | 95 |
+| 12 | User | Advanced docs | Added BFS walkthrough, MCP configuration guide | 95 |
+| 13 | Developer | Cycle 1 review | Fixed resolveModulePath extension, added 2 tests | 97 |
+| 14 | Developer | Test organization | Created shared test helpers (helpers.ts) | 97 |
+| 15 | Security | Deep review | MCP input validation, cache structure validation, 2 tests | 99 |
+| 16 | Security | Error audit | Typed all catch blocks, verified error classes, 1 test | 100 |
+| 17 | Ecosystem | Integration tests | TS/Python/mixed/cache pipeline scenarios, 4 tests | 104 |
+| 18 | Ecosystem | Doc-code sync | Fixed API examples, removed duplicate section, added getMetrics | 104 |
+| 19 | Production | Stress tests | 200-node graph, cache 5x cycle, deep chain, 3 tests | 107 |
+| 20 | Production | Final polish | README badges, CHANGELOG, ROUND_LOG, tests 3x | 107 |
+
+### Summary
+- **Tests:** 95 -> 107 (+12 tests, +2 test suites)
+- **Test suites:** 13 -> 15
+- **All 107 tests pass 3/3 runs**
+- **tsc --noEmit: clean**

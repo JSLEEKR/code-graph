@@ -5,8 +5,10 @@
 **Smart context extraction for AI coding tools**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-95%20passing-brightgreen.svg)](#testing)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933.svg)](https://nodejs.org/)
+[![Tests](https://img.shields.io/badge/tests-107%20passing-brightgreen.svg)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![MCP](https://img.shields.io/badge/MCP-compatible-8A2BE2.svg)](#mcp-server)
 
 Extract exactly the code context an AI needs -- nothing more, nothing less.
 Build a code graph, query with a token budget, get precise results.
@@ -766,20 +768,22 @@ npx code-graph serve
 npm test
 ```
 
-95 tests across 13 test suites:
+107 tests across 15 test suites:
 - TypeScript plugin (9 tests) -- arrow functions, type aliases, imports, calls
 - Python plugin (6 tests) -- decorators, __init__ method, class methods
 - Plugin registry (4 tests) -- register, retrieve, list, edge cases
-- Code graph engine (12 tests) -- mixed TypeScript + Python support
+- Code graph engine (14 tests) -- mixed TS+Python, resolve, metrics errors
 - File scanner (3 tests) -- git-aware scanning, extension filtering
 - Metrics (4 tests) -- complexity, token estimation, symbol metrics
 - Cache manager (5 tests) -- save, load, changed files, clear
 - Context extractor (27 tests) -- diff-context, fuzzy search, metrics output, maxDepth, edge cases
 - Package exports (4 tests) -- verify all public API exports
-- Input validation (8 tests) -- malicious paths, crafted sources, edge cases
-- Error recovery (4 tests) -- deleted files, corrupted cache, rebuild cycle
+- Input validation (10 tests) -- malicious paths, crafted sources, cache poisoning
+- Error recovery (5 tests) -- deleted files, corrupted cache, rebuild cycle, typed errors
 - Performance (5 tests) -- 60-file build, search, stats, impact analysis
+- Stress tests (3 tests) -- 200-node graph, cache rebuild cycle, deep chain impact
 - Integration: full pipeline (4 tests)
+- Integration: full scenarios (4 tests) -- TS-only, Python-only, mixed, cache consistency
 
 ## License
 
