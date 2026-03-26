@@ -282,8 +282,10 @@ The key insight: **static analysis (local, free) determines what to send, AI onl
 ## Quick Start
 
 ```bash
-# Install
-npm install code-graph
+# Clone and install
+git clone https://github.com/JSLEEKR/code-graph.git
+cd code-graph
+npm install
 
 # Build the TypeScript source (required before first use)
 npm run build
@@ -394,9 +396,9 @@ Each mode changes BFS traversal priority:
 
 | Mode | Callees Priority | Callers Priority | Use Case |
 |------|-----------------|-----------------|----------|
-| `debug` | 3 (high) | 1 (low) | Trace what a function calls to find bugs |
-| `refactor` | 1 (low) | 3 (high) | Find all callers that need updating |
-| `review` | 2 (equal) | 2 (equal) | Balanced view for code review |
+| `debug` | High (explored first) | Low (explored last) | Trace what a function calls to find bugs |
+| `refactor` | Low (explored last) | High (explored first) | Find all callers that need updating |
+| `review` | Equal | Equal | Balanced view for code review |
 
 ## Token Budget
 
@@ -573,13 +575,16 @@ A: The symbol may not exist or may have a different name. Use `npx code-graph se
 A: The first build parses all files. Subsequent builds use incremental caching (only re-parse changed files). The cache is stored in `.code-graph/cache.json`.
 
 **Q: Can I use code-graph with JavaScript files?**
-A: The TypeScript plugin handles `.ts` and `.tsx` files. Plain `.js/.jsx` files are not supported yet, but you can implement a custom `LanguagePlugin`.
+A: The TypeScript plugin handles `.ts` and `.tsx` files. Plain `.js/.jsx` files are not supported yet. To add support, implement the `LanguagePlugin` interface (see [Adding a Plugin](#adding-a-plugin)).
 
 **Q: How do I reset the cache?**
 A: Delete the `.code-graph/` directory, or use `CacheManager.clear()` in the API.
 
 **Q: MCP server does not start**
 A: Ensure you have built the project first (`npm run build`). The MCP server requires the compiled `dist/` output. Check that `@modelcontextprotocol/sdk` is installed.
+
+**Q: How do I filter stats by directory?**
+A: Use `npx code-graph stats --path ./src`. The `--path` option filters symbols whose file path contains the given string (substring match, not directory scan).
 
 ### CLI Usage Examples
 
