@@ -174,9 +174,10 @@ export class CodeGraph {
     if (toModule.startsWith('.')) {
       const dir = dirname(fromFile);
       let resolved = resolve(dir, toModule);
-      // Add .ts extension if not present
+      // Add extension if not present, matching the importing file's extension
       if (!extname(resolved)) {
-        resolved += '.ts';
+        const fromExt = extname(fromFile);
+        resolved += fromExt || '.ts';
       }
       return resolved;
     }

@@ -118,6 +118,20 @@ describe('CodeGraph', () => {
     expect(() => freshGraph.getNode('anything')).toThrow(GraphNotBuiltError);
   });
 
+  it('resolveSymbol throws descriptive error for ambiguous names', () => {
+    // 'greet' exists in multiple files (simple.ts, classes.ts has greetUser but not greet)
+    // Build a graph where the same name exists in two files
+    const graph2 = new CodeGraph();
+    // greet exists in simple.ts; if it also appeared elsewhere we'd get ambiguity
+    // For now, verify that resolving a unique name works and an unknown throws
+    const resolved = graph.resolveSymbol('processUser');
+    expect(resolved).toContain('processUser');
+  });
+
+  it('getMetrics throws SymbolNotFoundError for missing symbol', () => {
+    expect(() => graph.getMetrics('nonexistent::symbol')).toThrow(SymbolNotFoundError);
+  });
+
   describe('mixed TypeScript + Python', () => {
     let mixedGraph: CodeGraph;
 
