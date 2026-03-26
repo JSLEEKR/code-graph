@@ -5,7 +5,7 @@
 **Smart context extraction for AI coding tools**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-66%20passing-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-95%20passing-brightgreen.svg)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Extract exactly the code context an AI needs -- nothing more, nothing less.
@@ -624,13 +624,19 @@ npx code-graph serve
 npm test
 ```
 
-66 tests across 7 test suites:
+95 tests across 13 test suites:
 - TypeScript plugin (9 tests) -- arrow functions, type aliases, imports, calls
 - Python plugin (6 tests) -- decorators, __init__ method, class methods
+- Plugin registry (4 tests) -- register, retrieve, list, edge cases
 - Code graph engine (12 tests) -- mixed TypeScript + Python support
+- File scanner (3 tests) -- git-aware scanning, extension filtering
 - Metrics (4 tests) -- complexity, token estimation, symbol metrics
 - Cache manager (5 tests) -- save, load, changed files, clear
-- Context extractor (26 tests) -- diff-context, fuzzy search, metrics output, edge cases
+- Context extractor (27 tests) -- diff-context, fuzzy search, metrics output, maxDepth, edge cases
+- Package exports (4 tests) -- verify all public API exports
+- Input validation (8 tests) -- malicious paths, crafted sources, edge cases
+- Error recovery (4 tests) -- deleted files, corrupted cache, rebuild cycle
+- Performance (5 tests) -- 60-file build, search, stats, impact analysis
 - Integration: full pipeline (4 tests)
 
 ## License

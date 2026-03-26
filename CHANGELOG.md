@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-03-26 (Cycle 1: Rounds 1-10)
+
+### Added
+- **Requirements section** in README (Node >= 18, TypeScript 5.4+, Git)
+- **engines field** in package.json (`node >= 18.0.0`)
+- **Troubleshooting/FAQ** section with 6 common issues and solutions
+- **CLI usage examples** covering all 8 commands with flags
+- **Graph JSON format docs** for external tool interop
+- **CI script** (`npm run ci` = tsc --noEmit + vitest run)
+- **lint:types script** for standalone type checking
+- **60 performance fixture files** with cross-file call chains
+- **29 new tests** (95 total across 13 test suites):
+  - Plugin registry (4), file scanner (3), exports (4)
+  - Input validation / security (8), error recovery (4)
+  - Performance (5), dependencies maxDepth (1)
+
+### Changed
+- Error messages now include actionable hints (GraphNotBuiltError, SymbolNotFoundError, PluginNotFoundError)
+- Quick Start includes `npm run build` step
+
+### Removed
+- Unused `web-tree-sitter` dependency
+- Dead code: duplicate `findMethodEnd` in TypeScriptPlugin (identical to `findBlockEnd`)
+- Unused `computeComplexity` import in context-extractor
+
 ## [0.3.0] - 2026-03-25
 
 ### Added
