@@ -467,7 +467,7 @@ const ctx = extractor.extract('handleRequest', {
 
 console.log(ctx.summary);    // "handleRequest (15 lines) + 2 callees"
 console.log(ctx.tokenCount); // 487
-console.log(ctx.related);    // [validateInput, formatResponse]
+console.log(ctx.related.map(s => s.name));  // ["validateInput", "formatResponse"]
 
 // Impact analysis
 const impact = extractor.impact('validateInput');
@@ -524,20 +524,7 @@ The MCP server exposes 5 tools for AI agent integration over stdio:
 | `get_dependencies` | Get dependency chain | `target`, `direction` |
 | `get_stats` | Get codebase statistics | `path?` |
 
-### Claude Code Integration
-
-Add to your `.claude/settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "code-graph": {
-      "command": "npx",
-      "args": ["code-graph", "serve"]
-    }
-  }
-}
-```
+See [MCP Server Configuration Guide](#mcp-server-configuration-guide) for setup instructions.
 
 ## Context Modes
 
@@ -620,6 +607,7 @@ if (cached) {
 | `getCallees(symbolId)` | `GraphEdge[]` | Get outgoing call edges |
 | `getDependencies(id, dir)` | `GraphEdge[]` | Get all edges in a direction |
 | `resolveSymbol(name)` | `string` | Resolve short name to full symbol ID |
+| `getMetrics(symbolId)` | `SymbolMetrics` | Get complexity, lines, callers, callees, params |
 | `serialize()` | `string` | Serialize graph to JSON |
 | `deserialize(data)` | `CodeGraph` | Static: restore from JSON |
 
