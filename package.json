@@ -38,6 +38,9 @@
     "commander": "^13.0.0",
     "web-tree-sitter": "^0.25.3"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "typescript": "^5.4.0",

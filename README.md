@@ -273,11 +273,20 @@ Traditional AI tool:                        code-graph:
 
 The key insight: **static analysis (local, free) determines what to send, AI only processes what matters.**
 
+## Requirements
+
+- **Node.js** >= 18.0.0
+- **TypeScript** >= 5.4 (for development/building from source)
+- **Git** (optional, for automatic `.gitignore`-aware file scanning)
+
 ## Quick Start
 
 ```bash
 # Install
 npm install code-graph
+
+# Build the TypeScript source (required before first use)
+npm run build
 
 # Build a graph of your project
 npx code-graph build --root ./my-project
