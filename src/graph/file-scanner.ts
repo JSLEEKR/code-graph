@@ -17,8 +17,8 @@ export async function scanFiles(rootDir: string, extensions: string[]): Promise<
       .map(f => f.trim())
       .filter(Boolean)
       .map(f => join(absRoot, f));
-  } catch {
-    // Fallback: recursive fs scan
+  } catch (_err: unknown) {
+    // Fallback: recursive fs scan (not in a git repo)
     files = recursiveScan(absRoot);
   }
 

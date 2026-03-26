@@ -358,7 +358,7 @@ export class ContextExtractor {
           if (!allGraphEdges.some(e => e.id === edge.id)) allGraphEdges.push(edge);
         }
         totalTokens += bundle.tokenCount;
-      } catch {
+      } catch (_err: unknown) {
         // Skip symbols that can't be resolved (ambiguous names)
         continue;
       }
@@ -400,7 +400,7 @@ export class ContextExtractor {
       const targetId = this.graph.resolveSymbol(bundle.target.name);
       const metrics = this.graph.getMetrics(targetId);
       lines.push(`// Metrics: complexity=${metrics.complexity}, lines=${metrics.lineCount}, callers=${metrics.callerCount}, callees=${metrics.calleeCount}`);
-    } catch {
+    } catch (_err: unknown) {
       // skip metrics if symbol cannot be resolved
     }
     lines.push(bundle.target.source);

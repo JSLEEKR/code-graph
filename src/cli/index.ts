@@ -64,7 +64,7 @@ program.command('context')
       try {
         const rMetrics = graph.getMetrics(graph.resolveSymbol(r.name));
         console.log(`  - ${r.name} (${r.kind}) [complexity: ${rMetrics.complexity}, lines: ${rMetrics.lineCount}]`);
-      } catch {
+      } catch (_err: unknown) {
         console.log(`  - ${r.name} (${r.kind}, ${r.filePath}:${r.startLine})`);
       }
     }

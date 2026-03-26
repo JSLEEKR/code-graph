@@ -126,4 +126,32 @@ describe('Error Recovery', () => {
       expect(reloaded!.graph.getAllNodes().length).toBe(nodes.length);
     });
   });
+
+  describe('typed error classes', () => {
+    it('all custom errors have correct name property', async () => {
+      const {
+        GraphNotBuiltError,
+        SymbolNotFoundError,
+        PluginNotFoundError,
+        ParseError,
+        CacheCorruptError,
+        BudgetExhaustedError,
+      } = await import('../../src/errors.js');
+
+      const errors = [
+        { cls: new GraphNotBuiltError(), name: 'GraphNotBuiltError' },
+        { cls: new SymbolNotFoundError('test'), name: 'SymbolNotFoundError' },
+        { cls: new PluginNotFoundError('.xyz'), name: 'PluginNotFoundError' },
+        { cls: new ParseError('file.ts', 'detail'), name: 'ParseError' },
+        { cls: new CacheCorruptError('/path'), name: 'CacheCorruptError' },
+        { cls: new BudgetExhaustedError('sym', 100, 50), name: 'BudgetExhaustedError' },
+      ];
+
+      for (const { cls, name } of errors) {
+        expect(cls).toBeInstanceOf(Error);
+        expect(cls.name).toBe(name);
+        expect(cls.message).toBeTruthy();
+      }
+    });
+  });
 });

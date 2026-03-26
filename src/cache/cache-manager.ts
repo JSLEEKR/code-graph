@@ -31,7 +31,7 @@ export class CacheManager {
       const graph = CodeGraph.deserialize(data.graphData);
       const fileMtimes = new Map<string, number>(Object.entries(data.fileMtimes));
       return { graph, fileMtimes };
-    } catch {
+    } catch (_err: unknown) {
       return null;
     }
   }
@@ -52,6 +52,8 @@ export class CacheManager {
   async clear(): Promise<void> {
     try {
       await fs.rm(path.dirname(this.cacheFile), { recursive: true, force: true });
-    } catch {}
+    } catch (_err: unknown) {
+      // Ignore cleanup errors (directory may not exist)
+    }
   }
 }
