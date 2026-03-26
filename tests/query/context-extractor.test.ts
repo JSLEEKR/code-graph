@@ -261,6 +261,17 @@ describe('ContextExtractor', () => {
     });
   });
 
+  // dependencies maxDepth test
+  describe('dependencies with maxDepth', () => {
+    it('respects maxDepth=1 limit', () => {
+      const result = extractor.dependencies('farewell', 'upstream', 1);
+      // Should only include depth 1, not deeper
+      for (const node of result.nodes) {
+        expect(node.depth).toBeLessThanOrEqual(1);
+      }
+    });
+  });
+
   // stats tests
   describe('stats', () => {
     it('hotspots are sorted by complexity descending', () => {
