@@ -78,4 +78,50 @@ describe('Input Validation', () => {
       expect(result.symbols.length).toBeGreaterThanOrEqual(1);
     });
   });
+
+  describe('cache poisoning resistance', () => {
+    it('rejects cache with missing graphData field', async () => {
+      const { CacheManager } = await import('../../src/cache/cache-manager.js');
+      const fs = await import('node:fs/promises');
+      const path = await import('node:path');
+      const os = await import('node:os');
+
+      const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'cache-poison-'));
+      try {
+        const manager = new CacheManager(dir);
+        // Write cache without graphData
+        await fs.writeFile(
+          path.join(dir, 'cache.json'),
+          JSON.stringify({ fileMtimes: {}, graphData: 42 }), // graphData is number, not string
+          'utf-8',
+        );
+        const result = await manager.load();
+        expect(result).toBeNull();
+      } finally {
+        await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
+      }
+    });
+
+    it('rejects cache with null fileMtimes', async () => {
+      const { CacheManager } = await import('../../src/cache/cache-manager.js');
+      const fs = await import('node:fs/promises');
+      const path = await import('node:path');
+      const os = await import('node:os');
+
+      const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'cache-poison2-'));
+      try {
+        const manager = new CacheManager(dir);
+        await fs.writeFile(
+          path.join(dir, 'cache.json'),
+          JSON.stringify({ graphData: '{"nodes":{},"edges":{}}', fileMtimes: null }),
+          'utf-8',
+        );
+        const result = await manager.load();
+        expect(result).toBeNull();
+      } finally {
+        await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
+      }
+    });
+  });
 });
+

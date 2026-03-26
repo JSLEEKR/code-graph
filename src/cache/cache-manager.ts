@@ -24,6 +24,10 @@ export class CacheManager {
     try {
       const raw = await fs.readFile(this.cacheFile, 'utf-8');
       const data = JSON.parse(raw);
+      // Validate cache structure before deserializing
+      if (typeof data.graphData !== 'string' || typeof data.fileMtimes !== 'object' || data.fileMtimes === null) {
+        return null;
+      }
       const graph = CodeGraph.deserialize(data.graphData);
       const fileMtimes = new Map<string, number>(Object.entries(data.fileMtimes));
       return { graph, fileMtimes };

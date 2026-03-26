@@ -96,6 +96,18 @@ export async function startMCPServer(): Promise<void> {
     const ext = await ensureGraph();
     const args = (request.params.arguments ?? {}) as Record<string, unknown>;
 
+    // Validate string params: reject path traversal attempts and null bytes
+    for (const [key, value] of Object.entries(args)) {
+      if (typeof value === 'string') {
+        if (value.includes('\0')) {
+          throw new Error(`Invalid parameter "${key}": null bytes not allowed`);
+        }
+        if (key === 'path' && (value.includes('..') || value.startsWith('/'))) {
+          throw new Error(`Invalid path parameter: path traversal not allowed. Use relative paths within the project.`);
+        }
+      }
+    }
+
     switch (request.params.name) {
       case 'get_context': {
         const result = ext.extract(args.target as string, {
