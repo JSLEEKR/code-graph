@@ -159,7 +159,7 @@ export class TypeScriptPlugin implements LanguagePlugin {
           if (name === 'constructor') continue;
           const paramsStr = match[2];
           const startLine = i + 1;
-          const endLine = this.findMethodEnd(lines, i);
+          const endLine = this.findBlockEnd(lines, i);
           const blockSource = lines.slice(i, endLine).join('\n');
           const params = this.parseParams(paramsStr);
           symbols.push({
@@ -243,25 +243,6 @@ export class TypeScriptPlugin implements LanguagePlugin {
   }
 
   private findBlockEnd(lines: string[], startIdx: number): number {
-    let braceCount = 0;
-    let foundBrace = false;
-    for (let i = startIdx; i < lines.length; i++) {
-      for (const ch of lines[i]) {
-        if (ch === '{') {
-          braceCount++;
-          foundBrace = true;
-        } else if (ch === '}') {
-          braceCount--;
-        }
-      }
-      if (foundBrace && braceCount === 0) {
-        return i + 1;
-      }
-    }
-    return lines.length;
-  }
-
-  private findMethodEnd(lines: string[], startIdx: number): number {
     let braceCount = 0;
     let foundBrace = false;
     for (let i = startIdx; i < lines.length; i++) {

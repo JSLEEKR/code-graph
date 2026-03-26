@@ -1,5 +1,5 @@
 import { CodeGraph } from '../graph/code-graph.js';
-import { estimateTokens, computeComplexity, computeSymbolMetrics } from '../graph/metrics.js';
+import { estimateTokens, computeSymbolMetrics } from '../graph/metrics.js';
 import type {
   ContextOptions,
   ContextBundle,

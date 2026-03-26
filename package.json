@@ -21,7 +21,6 @@
     "ai",
     "context",
     "code-graph",
-    "tree-sitter",
     "cli"
   ],
   "files": [
@@ -35,8 +34,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
-    "commander": "^13.0.0",
-    "web-tree-sitter": "^0.25.3"
+    "commander": "^13.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
