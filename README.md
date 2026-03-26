@@ -1,19 +1,31 @@
 <div align="center">
 
-# code-graph
+# 🧠 code-graph
 
-**Smart context extraction for AI coding tools**
+### Smart context extraction for AI tools
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-339933.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/tests-107%20passing-brightgreen.svg)](#testing)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![MCP](https://img.shields.io/badge/MCP-compatible-8A2BE2.svg)](#mcp-server)
+[![GitHub Stars](https://img.shields.io/github/stars/JSLEEKR/code-graph?style=for-the-badge&logo=github&color=yellow)](https://github.com/JSLEEKR/code-graph/stargazers)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/tests-107%20passing-brightgreen?style=for-the-badge)](#)
 
-Extract exactly the code context an AI needs -- nothing more, nothing less.
-Build a code graph, query with a token budget, get precise results.
+<br/>
+
+**Build a dependency graph of your codebase, query with a token budget, get precise results**
 
 </div>
+
+---
+
+## Why This Exists
+
+AI coding tools waste tokens by reading entire files when they only need a few functions. A 500-line file might contain one relevant function and its two callees -- that's 30 lines, not 500. The rest is noise that burns context window and reduces response quality.
+
+`code-graph` builds a dependency graph of your codebase and uses budget-based BFS to extract only the symbols that matter for a given task -- nothing more, nothing less.
+
+- **94% token reduction** on typical debug tasks -- 225 tokens instead of 4,000 for a single function trace
+- **Mode-aware traversal** -- `debug` mode follows callees, `refactor` mode follows callers, `review` mode balances both
+- **MCP server included** -- connect directly to Claude Code and AI agents for automatic context extraction
 
 ## Why
 
