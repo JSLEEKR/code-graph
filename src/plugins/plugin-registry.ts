@@ -10,7 +10,9 @@ export class PluginRegistry {
   }
 
   getForFile(filePath: string): LanguagePlugin | undefined {
-    const ext = '.' + filePath.split('.').pop();
+    const parts = filePath.split('.');
+    if (parts.length < 2) return undefined; // no extension (e.g. Makefile)
+    const ext = '.' + parts.pop();
     return this.plugins.get(ext);
   }
 

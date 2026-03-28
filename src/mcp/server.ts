@@ -102,7 +102,7 @@ export async function startMCPServer(): Promise<void> {
         if (value.includes('\0')) {
           throw new Error(`Invalid parameter "${key}": null bytes not allowed`);
         }
-        if (key === 'path' && (value.includes('..') || value.startsWith('/'))) {
+        if (key === 'path' && (value.includes('..') || value.startsWith('/') || /^[a-zA-Z]:[/\\]/.test(value))) {
           throw new Error(`Invalid path parameter: path traversal not allowed. Use relative paths within the project.`);
         }
       }

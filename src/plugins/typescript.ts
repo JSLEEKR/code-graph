@@ -182,10 +182,15 @@ export class TypeScriptPlugin implements LanguagePlugin {
 
   private extractImports(filePath: string, source: string): ImportInfo[] {
     const imports: ImportInfo[] = [];
-    const importRegex = /import\s+\{([^}]+)\}\s+from\s+['"]([^'"]+)['"]/g;
+    const importRegex = /import\s+(?:type\s+)?\{([^}]+)\}\s+from\s+['"]([^'"]+)['"]/g;
     let match;
     while ((match = importRegex.exec(source)) !== null) {
-      const symbolNames = match[1].split(',').map(s => s.trim()).filter(Boolean);
+      const symbolNames = match[1].split(',').map(s => {
+        const trimmed = s.trim();
+        // Handle aliased imports: "foo as bar" → take original name "foo"
+        const asIndex = trimmed.indexOf(' as ');
+        return asIndex !== -1 ? trimmed.slice(0, asIndex).trim() : trimmed;
+      }).filter(Boolean);
       imports.push({
         fromFile: filePath,
         toModule: match[2],

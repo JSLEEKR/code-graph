@@ -125,7 +125,12 @@ export class PythonPlugin implements LanguagePlugin {
       const toModule = match[1];
       const symbolNames = match[2]
         .split(',')
-        .map(s => s.trim())
+        .map(s => {
+          const trimmed = s.trim();
+          // Handle aliased imports: "foo as bar" → take original name "foo"
+          const asIndex = trimmed.indexOf(' as ');
+          return asIndex !== -1 ? trimmed.slice(0, asIndex).trim() : trimmed;
+        })
         .filter(Boolean);
       imports.push({ fromFile: filePath, toModule, symbols: symbolNames });
     }
